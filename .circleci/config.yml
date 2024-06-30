@@ -29,9 +29,9 @@ jobs:
             docker push arjun0201/nodejswebapp1:$TIMESTAMP
             docker push arjun0201/nodejswebapp1:latest
             echo "Image pushed with tag: $TIMESTAMP"
-            echo $TIMESTAMP > timestamp.txt
+            echo $TIMESTAMP > /tmp/timestamp.txt
       - persist_to_workspace:
-          root: .
+          root: /tmp
           paths:
             - timestamp.txt
 
