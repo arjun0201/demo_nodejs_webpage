@@ -17,12 +17,6 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: false
       - run:
-          name: Verify File Creation
-          command: |
-            echo "Contents of /tmp/timestamp.txt:"
-            cat /tmp/timestamp.txt
-            ls -l /tmp
-      - run:
           name: Build Docker image
           command: |
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
