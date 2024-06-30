@@ -64,17 +64,17 @@ jobs:
               exit 1
             fi
       - run:
-         name: Debug Workspace Attachment
-         command: |
-           echo "Listing /workspace directory:"
-           ls -l /workspace
-          echo "Checking if timestamp.txt exists:"
-          if [ -f /workspace/timestamp.txt ]; then
-            echo "timestamp.txt found"
-            cat /workspace/timestamp.txt
-          else
-            echo "timestamp.txt not found"
-          fi
+          name: Debug Workspace Attachment
+          command: |
+            echo "Listing /workspace directory:"
+            ls -l /workspace
+            echo "Checking if timestamp.txt exists:"
+            if [ -f /workspace/timestamp.txt ]; then
+              echo "timestamp.txt found"
+              cat /workspace/timestamp.txt
+            else
+              echo "timestamp.txt not found"
+            fi
 workflows:
   version: 2
   build_and_deploy:
