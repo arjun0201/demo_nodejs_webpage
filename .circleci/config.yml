@@ -1,5 +1,4 @@
 version: 2.1
-
 jobs:
   build_test:
     docker:
@@ -10,7 +9,6 @@ jobs:
           name: Install npm dependencies
           command: |
             npm install --save
-
   build_docker_image:
     docker:
       - image: circleci/node:12
@@ -74,4 +72,6 @@ workflows:
       - run_docker_container:
           requires:
             - build_docker_image
-            
+
+
+
