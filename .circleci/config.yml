@@ -30,13 +30,6 @@ jobs:
             docker push arjun0201/nodejswebapp1:latest
             echo "Image pushed with tag: $TIMESTAMP"
             echo $TIMESTAMP > /tmp/timestamp.txt
-      - run:
-          name: Verify timestamp.txt file
-          command: |
-            echo "Contents of /tmp/timestamp.txt:"
-            cat /tmp/timestamp.txt
-            echo "Listing /tmp directory:"
-            ls -l /tmp
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -49,9 +42,9 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run:
-          name: Verify Workspace Attachment
+          name: Verify Workspace Contents
           command: |
-            echo "Checking workspace attachment:"
+            echo "Listing /workspace directory:"
             ls -l /workspace
             echo "Contents of /workspace/timestamp.txt:"
             if [ -f /workspace/timestamp.txt ]; then
@@ -62,10 +55,15 @@ jobs:
       - run:
           name: Run Docker container with timestamp
           command: |
-            TIMESTAMP=$(cat /workspace/timestamp.txt)
-            CONTAINER_NAME=nodejs123_$TIMESTAMP
-            echo "Running Docker container with name: $CONTAINER_NAME"
-            docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
+            if [ -f /workspace/timestamp.txt ]; then
+              TIMESTAMP=$(cat /workspace/timestamp.txt)
+              CONTAINER_NAME=nodejs123_$TIMESTAMP
+              echo "Running Docker container with name: $CONTAINER_NAME"
+              docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
+            else
+              echo "Cannot run Docker container. timestamp.txt is missing."
+              exit 1
+            fi
 
 workflows:
   version: 2
@@ -76,3 +74,4 @@ workflows:
       - run_docker_container:
           requires:
             - build_docker_image
+            
