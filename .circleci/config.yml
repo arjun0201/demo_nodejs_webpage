@@ -68,6 +68,4 @@ workflows:
     jobs:
       - build_test
       - build_docker_image
-      - run_docker_container:
-          requires:
-            - build_docker_image
+      
