@@ -30,6 +30,13 @@ jobs:
             docker push arjun0201/nodejswebapp1:latest
             echo "Image pushed with tag: $TIMESTAMP"
             echo $TIMESTAMP > /tmp/timestamp.txt
+      - run:
+          name: Verify timestamp.txt file
+          command: |
+            echo "Contents of /tmp/timestamp.txt:"
+            cat /tmp/timestamp.txt
+            echo "Listing /tmp directory:"
+            ls -l /tmp
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -41,6 +48,13 @@ jobs:
     steps:
       - attach_workspace:
           at: /workspace
+      - run:
+          name: Verify Workspace Contents
+          command: |
+            echo "Workspace contents:"
+            ls -l /workspace
+            echo "Contents of /workspace/timestamp.txt:"
+            cat /workspace/timestamp.txt
       - run:
           name: Run Docker container with timestamp
           command: |
