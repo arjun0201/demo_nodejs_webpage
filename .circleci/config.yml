@@ -1,4 +1,5 @@
 version: 2.1
+
 jobs:
   build_test:
     docker:
@@ -9,6 +10,7 @@ jobs:
           name: Install npm dependencies
           command: |
             npm install --save
+
   build_docker_image:
     docker:
       - image: circleci/node:12
@@ -32,16 +34,15 @@ jobs:
           root: /tmp
           paths:
             - timestamp.txt
-      - attach_workspace:
-          at: /workspace
-
 
   run_docker_container:
     docker:
       - image: circleci/node:12
     steps:
+      - attach_workspace:
+          at: /workspace
       - run:
-          name: Verify Workspace Contents
+          name: Debugging Workspace Attachment
           command: |
             echo "Listing /workspace directory:"
             ls -l /workspace
@@ -63,18 +64,7 @@ jobs:
               echo "Cannot run Docker container. timestamp.txt is missing."
               exit 1
             fi
-      - run:
-          name: Debug Workspace Attachment
-          command: |
-            echo "Listing /workspace directory:"
-            ls -l /workspace
-            echo "Checking if timestamp.txt exists:"
-            if [ -f /workspace/timestamp.txt ]; then
-              echo "timestamp.txt found"
-              cat /workspace/timestamp.txt
-            else
-              echo "timestamp.txt not found"
-            fi
+
 workflows:
   version: 2
   build_and_deploy:
