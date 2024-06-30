@@ -59,8 +59,9 @@ jobs:
           name: Run Docker container with timestamp
           command: |
             TIMESTAMP=$(cat /workspace/timestamp.txt)
-            echo "Running Docker container with image tag: $TIMESTAMP"
-            docker run -d --name nodejs123 -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
+            CONTAINER_NAME=nodejs123_$TIMESTAMP
+            echo "Running Docker container with name: $CONTAINER_NAME"
+            docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
 
 workflows:
   version: 2
@@ -68,4 +69,6 @@ workflows:
     jobs:
       - build_test
       - build_docker_image
-      
+      - run_docker_container:
+          requires:
+            - build_docker_image
