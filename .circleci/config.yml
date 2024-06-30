@@ -21,19 +21,18 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            IMAGE_NAME=nodejswebapp1:$TIMESTAMP
-            echo "Building Docker image with tag: $TIMESTAMP"
-            docker build -t $IMAGE_NAME -t arjun0201/nodejswebapp1:$TIMESTAMP -t arjun0201/nodejswebapp1:latest .
+            IMAGE_NAME=nodejswebapp1:build-$CIRCLE_BUILD_NUM
+            echo "Building Docker image with tag: build-$CIRCLE_BUILD_NUM"
+            docker build -t $IMAGE_NAME -t arjun0201/nodejswebapp1:build-$CIRCLE_BUILD_NUM -t arjun0201/nodejswebapp1:latest .
             echo $DOCKER_PASSWORD | docker login -u arjun0201 --password-stdin
-            docker push arjun0201/nodejswebapp1:$TIMESTAMP
+            docker push arjun0201/nodejswebapp1:build-$CIRCLE_BUILD_NUM
             docker push arjun0201/nodejswebapp1:latest
-            echo "Image pushed with tag: $TIMESTAMP"
-            echo $TIMESTAMP > /tmp/timestamp.txt
+            echo "Image pushed with tag: build-$CIRCLE_BUILD_NUM"
+            echo $CIRCLE_BUILD_NUM > /tmp/build_number.txt
       - persist_to_workspace:
           root: /tmp
           paths:
-            - timestamp.txt
+            - build_number.txt
 
   run_docker_container:
     docker:
@@ -42,28 +41,19 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run:
-          name: Debugging Workspace Attachment
+          name: Verify Workspace Contents
           command: |
-            echo "Listing /workspace directory:"
+            echo "Workspace contents:"
             ls -l /workspace
-            echo "Contents of /workspace/timestamp.txt:"
-            if [ -f /workspace/timestamp.txt ]; then
-              cat /workspace/timestamp.txt
-            else
-              echo "timestamp.txt not found"
-            fi
+            echo "Contents of /workspace/build_number.txt:"
+            cat /workspace/build_number.txt
       - run:
-          name: Run Docker container with timestamp
+          name: Run Docker container with build number
           command: |
-            if [ -f /workspace/timestamp.txt ]; then
-              TIMESTAMP=$(cat /workspace/timestamp.txt)
-              CONTAINER_NAME=nodejs123_$TIMESTAMP
-              echo "Running Docker container with name: $CONTAINER_NAME"
-              docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
-            else
-              echo "Cannot run Docker container. timestamp.txt is missing."
-              exit 1
-            fi
+            BUILD_NUMBER=$(cat /workspace/build_number.txt)
+            CONTAINER_NAME=nodejs123_$BUILD_NUMBER
+            echo "Running Docker container with name: $CONTAINER_NAME"
+            docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:build-$BUILD_NUMBER
 
 workflows:
   version: 2
