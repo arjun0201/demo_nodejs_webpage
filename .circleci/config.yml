@@ -49,19 +49,28 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run:
-          name: Verify Workspace Contents
+          name: Verify Workspace Attachment
           command: |
-            echo "Workspace contents:"
+            echo "Checking workspace attachment:"
             ls -l /workspace
             echo "Contents of /workspace/timestamp.txt:"
-            cat /workspace/timestamp.txt
+            if [ -f /workspace/timestamp.txt ]; then
+              cat /workspace/timestamp.txt
+            else
+              echo "timestamp.txt not found"
+            fi
       - run:
           name: Run Docker container with timestamp
           command: |
-            TIMESTAMP=$(cat /workspace/timestamp.txt)
-            CONTAINER_NAME=nodejs123_$TIMESTAMP
-            echo "Running Docker container with name: $CONTAINER_NAME"
-            docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
+            if [ -f /workspace/timestamp.txt ]; then
+              TIMESTAMP=$(cat /workspace/timestamp.txt)
+              CONTAINER_NAME=nodejs123_$TIMESTAMP
+              echo "Running Docker container with name: $CONTAINER_NAME"
+              docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
+            else
+              echo "Cannot run Docker container. timestamp.txt is missing."
+              exit 1
+            fi
 
 workflows:
   version: 2
