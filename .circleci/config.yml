@@ -49,11 +49,11 @@ jobs:
             docker run -d --name nodejs123 -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
 
 workflows:
-  build_test:
+  version: 2
+  build_and_deploy:
     jobs:
       - build_test
       - build_docker_image
       - run_docker_container:
           requires:
             - build_docker_image
-
