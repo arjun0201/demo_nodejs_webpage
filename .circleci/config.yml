@@ -23,13 +23,36 @@ jobs:
           command: |
             TIMESTAMP=$(date +%Y%m%d%H%M%S)
             IMAGE_NAME=nodejswebapp1:$TIMESTAMP
+            echo "Building Docker image with tag: $TIMESTAMP"
             docker build -t $IMAGE_NAME -t arjun0201/nodejswebapp1:$TIMESTAMP -t arjun0201/nodejswebapp1:latest .
             echo $DOCKER_PASSWORD | docker login -u arjun0201 --password-stdin
             docker push arjun0201/nodejswebapp1:$TIMESTAMP
             docker push arjun0201/nodejswebapp1:latest
+            echo "Image pushed with tag: $TIMESTAMP"
+            echo $TIMESTAMP > timestamp.txt
+      - persist_to_workspace:
+          root: .
+          paths:
+            - timestamp.txt
+
+  run_docker_container:
+    docker:
+      - image: circleci/node:12
+    steps:
+      - attach_workspace:
+          at: /workspace
+      - run:
+          name: Run Docker container with timestamp
+          command: |
+            TIMESTAMP=$(cat /workspace/timestamp.txt)
+            echo "Running Docker container with image tag: $TIMESTAMP"
+            docker run -d --name nodejs123 -p 8081:8081 arjun0201/nodejswebapp1:$TIMESTAMP
 
 workflows:
   build_test:
     jobs:
       - build_test
       - build_docker_image
+      - run_docker_container:
+          requires:
+            - build_docker_image
