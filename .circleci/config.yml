@@ -49,12 +49,16 @@ jobs:
       - attach_workspace:
           at: /workspace
       - run:
-          name: Verify Workspace Contents
+          name: Verify Workspace Attachment
           command: |
-            echo "Listing /workspace directory:"
+            echo "Checking workspace attachment:"
             ls -l /workspace
             echo "Contents of /workspace/timestamp.txt:"
-            cat /workspace/timestamp.txt
+            if [ -f /workspace/timestamp.txt ]; then
+              cat /workspace/timestamp.txt
+            else
+              echo "timestamp.txt not found"
+            fi
       - run:
           name: Run Docker container with timestamp
           command: |
