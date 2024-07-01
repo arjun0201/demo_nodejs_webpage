@@ -21,39 +21,42 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            IMAGE_NAME=nodejswebapp1:build-$CIRCLE_BUILD_NUM
-            echo "Building Docker image with tag: build-$CIRCLE_BUILD_NUM"
-            docker build -t $IMAGE_NAME -t arjun0201/nodejswebapp1:build-$CIRCLE_BUILD_NUM -t arjun0201/nodejswebapp1:latest .
+            TIMESTAMP=$(date +%Y%m%d%H%M%S)
+            IMAGE_NAME=nodejswebapp1:$TIMESTAMP
+            echo "Building Docker image with tag: $TIMESTAMP"
+            docker build -t $IMAGE_NAME -t arjun0201/nodejswebapp1:$TIMESTAMP -t arjun0201/nodejswebapp1:latest .
             echo $DOCKER_PASSWORD | docker login -u arjun0201 --password-stdin
-            docker push arjun0201/nodejswebapp1:build-$CIRCLE_BUILD_NUM
+            docker push arjun0201/nodejswebapp1:$TIMESTAMP
             docker push arjun0201/nodejswebapp1:latest
-            echo "Image pushed with tag: build-$CIRCLE_BUILD_NUM"
-            echo $CIRCLE_BUILD_NUM > /tmp/build_number.txt
+            echo "Image pushed with tag: $TIMESTAMP"
+            echo $TIMESTAMP > /tmp/timestamp.txt
       - persist_to_workspace:
           root: /tmp
           paths:
-            - build_number.txt
+            - timestamp.txt
 
-  run_docker_container:
+  docker_push_nvdrdev:
     docker:
       - image: circleci/node:12
     steps:
       - attach_workspace:
           at: /workspace
       - run:
-          name: Verify Workspace Contents
+          name: Set AWS Credentials
           command: |
-            echo "Workspace contents:"
-            ls -l /workspace
-            echo "Contents of /workspace/build_number.txt:"
-            cat /workspace/build_number.txt
+            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - run:
-          name: Run Docker container with build number
+          name: Push Docker image to AWS ECR
           command: |
-            BUILD_NUMBER=$(cat /workspace/build_number.txt)
-            CONTAINER_NAME=nodejs123_$BUILD_NUMBER
-            echo "Running Docker container with name: $CONTAINER_NAME"
-            docker run -d --name $CONTAINER_NAME -p 8081:8081 arjun0201/nodejswebapp1:build-$BUILD_NUMBER
+            aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin $DOCKER_REGISTRY_STLDEV
+            AFT_ECR_NAME="n${CI_PROJECT_NAME}"
+            BUILD_DATE=$(date +%d-%m-%Y)
+            BUILD_NUMBER=${CI_PIPELINE_ID}
+            TAG="${BUILD_NUMBER}-${BUILD_DATE}"
+            TIMESTAMP=$(cat /workspace/timestamp.txt)
+            docker tag arjun0201/nodejswebapp1:$TIMESTAMP ${DOCKER_REGISTRY_STLDEV}/${AFT_ECR_NAME}:${TAG}
+            docker push ${DOCKER_REGISTRY_STLDEV}/${AFT_ECR_NAME}:${TAG}
 
 workflows:
   version: 2
@@ -61,6 +64,6 @@ workflows:
     jobs:
       - build_test
       - build_docker_image
-      - run_docker_container:
+      - docker_push_nvdrdev:
           requires:
             - build_docker_image
